@@ -1,0 +1,15 @@
+uvicorn
+fastapi
+fastapi[standard]
+sqlalchemy
+python-dotenv
+psycopg2-binary
+alembic
+logger
+pyrogram
+fake_useragent
+aiohttp_socks
+asyncio
+aiohttp
+loguru
+requests

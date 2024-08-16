@@ -1,0 +1,73 @@
+version: "3.8"
+
+services:
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/templates/default.conf.template
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - vertus_network
+
+  db:
+    image: postgres
+    container_name: vertus_pgdb
+    restart: always
+    ports:
+      - "5430:5432"
+    environment:
+      POSTGRES_USER: vertus
+      POSTGRES_PASSWORD: vertus
+      POSTGRES_DB: vertus
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+    networks:
+      - vertus_network
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: vertus_pgadmin
+    restart: always
+    ports:
+      - "8880:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - vertus_network
+
+  api:
+    build: .
+    container_name: vertus_api
+    restart: always
+    ports:
+      - "6000:80"
+    volumes:
+      - ./:/app
+    networks:
+      - vertus_network
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://vertus:vertus@db:5432/vertus
+
+  ofelia:
+    image: mcuadros/ofelia:latest
+    depends_on:
+      - api
+    command: daemon --config=./cron.ini
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./cron.ini:/cron.ini
+
+volumes:
+  local_pgdata:
+  pgadmin-data:
+
+networks:
+  vertus_network:
+    driver: bridge
